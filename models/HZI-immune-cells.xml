@@ -1,0 +1,102 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<MorpheusModel version="3">
+    <Description>
+        <Details>Juan Carlo's crazy idea</Details>
+        <Title>HZI-Immune-Cells</Title>
+    </Description>
+    <Space>
+        <Lattice class="square">
+            <Neighborhood>
+                <Order>2</Order>
+            </Neighborhood>
+            <Size symbol="size" value="200, 200, 0"/>
+            <BoundaryConditions>
+                <Condition boundary="-x" type="noflux"/>
+                <Condition boundary="x" type="noflux"/>
+                <Condition boundary="-y" type="noflux"/>
+                <Condition boundary="y" type="noflux"/>
+            </BoundaryConditions>
+        </Lattice>
+        <SpaceSymbol symbol="space"/>
+    </Space>
+    <Time>
+        <StartTime value="0"/>
+        <StopTime value="10000"/>
+        <TimeSymbol symbol="time"/>
+    </Time>
+    <Global>
+        <Field symbol="c" value="0" name="chemokine">
+            <Diffusion rate="0.1"/>
+        </Field>
+        <System solver="runge-kutta" time-step="10.0">
+            <Constant symbol="d_rate" value="0.01" name="degradation rate"/>
+            <DiffEqn symbol-ref="c">
+                <Expression>p_rate*inf_cell - (d_rate*c)</Expression>
+            </DiffEqn>
+            <!--    <Disabled>
+        <Constant symbol="p_rate" value="1.0" name="production rate"/>
+    </Disabled>
+-->
+            <Function symbol="p_rate">
+                <Expression>sin(time / 100) + 1</Expression>
+            </Function>
+        </System>
+        <Constant symbol="im_cell" value="0.0"/>
+        <Constant symbol="inf_cell" value="0.0"/>
+    </Global>
+    <Analysis>
+        <Gnuplotter time-step="100.0">
+            <Plot>
+                <Cells value="cell.type"/>
+                <Field symbol-ref="c"/>
+                <CellLabels precision="0" value="num_im_cells"/>
+            </Plot>
+            <Terminal name="png"/>
+        </Gnuplotter>
+    </Analysis>
+    <CellTypes>
+        <CellType class="biological" name="infected">
+            <Property symbol="Vt" value="20" name="Target volume"/>
+            <VolumeConstraint target="Vt" strength="1"/>
+            <SurfaceConstraint target="1" mode="aspherity" strength="1"/>
+            <FreezeMotion>
+                <Condition>time > 100</Condition>
+            </FreezeMotion>
+            <Constant symbol="inf_cell" value="1.0"/>
+            <NeighborhoodReporter>
+                <Input scaling="cell" value="im_cell"/>
+                <Output symbol-ref="num_im_cells" mapping="sum"/>
+            </NeighborhoodReporter>
+            <Property symbol="num_im_cells" value="0" name="Number of touching immune cells"/>
+            <CellDeath>
+                <Condition>num_im_cells >= 3</Condition>
+            </CellDeath>
+        </CellType>
+        <CellType class="biological" name="immune">
+            <Property symbol="Vt" value="20" name="Target volume"/>
+            <VolumeConstraint target="Vt" strength="1"/>
+            <SurfaceConstraint target="1" mode="aspherity" strength="1"/>
+            <Chemotaxis field="c" strength="1"/>
+            <Constant symbol="im_cell" value="1.0"/>
+        </CellType>
+    </CellTypes>
+    <CellPopulations>
+        <Population size="50" type="infected"/>
+        <Population size="200" type="immune"/>
+    </CellPopulations>
+    <CPM>
+        <Interaction/>
+        <ShapeSurface scaling="norm">
+            <Neighborhood>
+                <Order>2</Order>
+            </Neighborhood>
+        </ShapeSurface>
+        <MonteCarloSampler stepper="edgelist">
+            <MCSDuration value="1"/>
+            <MetropolisKinetics temperature="1"/>
+            <Neighborhood>
+                <Order>2</Order>
+            </Neighborhood>
+        </MonteCarloSampler>
+    </CPM>
+</MorpheusModel>

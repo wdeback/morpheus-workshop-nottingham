@@ -1,0 +1,77 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<MorpheusModel version="3">
+    <Description>
+        <Title>GSCN-Toggle-Switch</Title>
+        <Details></Details>
+    </Description>
+    <Space>
+        <Lattice class="linear">
+            <Size symbol="size" value="1,0,0"/>
+            <Neighborhood>
+                <Order>2</Order>
+            </Neighborhood>
+        </Lattice>
+        <SpaceSymbol symbol="space"/>
+    </Space>
+    <Time>
+        <StartTime value="0"/>
+        <StopTime value="25"/>
+        <TimeSymbol symbol="time"/>
+    </Time>
+    <CellTypes>
+        <CellType class="biological" name="cell">
+            <Property symbol="x" value="0" name="Gene x"/>
+            <Property symbol="y" value="0" name="Gene y"/>
+            <System solver="heun" time-step="0.1">
+                <Constant symbol="a" value="2" name="transcription rate"/>
+                <Constant symbol="beta" value="4" name="cooperativity"/>
+                <Constant symbol="eta" value="0.001" name="noise amplitude"/>
+                <DiffEqn symbol-ref="x">
+                    <Expression>a/(1+(y^beta))-x + rand_norm(0,eta)</Expression>
+                </DiffEqn>
+                <DiffEqn symbol-ref="y">
+                    <Expression>a/(1+(x^beta))-y + rand_norm(0,eta)</Expression>
+                </DiffEqn>
+            </System>
+        </CellType>
+    </CellTypes>
+    <CellPopulations>
+        <Population size="0" type="cell">
+            <InitCellLattice/>
+            <InitProperty symbol-ref="x">
+                <Expression>0</Expression>
+            </InitProperty>
+            <InitProperty symbol-ref="y">
+                <Expression>0</Expression>
+            </InitProperty>
+        </Population>
+    </CellPopulations>
+    <Analysis>
+        <Logger time-step="0.1">
+            <Input>
+                <Symbol symbol-ref="x"/>
+                <Symbol symbol-ref="y"/>
+            </Input>
+            <Output>
+                <TextOutput/>
+            </Output>
+            <Plots>
+                <Plot time-step="-1">
+                    <Style grid="true" style="lines" line-width="4.0"/>
+                    <Terminal terminal="png"/>
+                    <X-axis>
+                        <Symbol symbol-ref="time"/>
+                    </X-axis>
+                    <Y-axis>
+                        <Symbol symbol-ref="x"/>
+                        <Symbol symbol-ref="y"/>
+                    </Y-axis>
+                </Plot>
+            </Plots>
+        </Logger>
+    </Analysis>
+    <Global>
+        <Constant symbol="x" value="0.0"/>
+        <Constant symbol="y" value="0.0"/>
+    </Global>
+</MorpheusModel>

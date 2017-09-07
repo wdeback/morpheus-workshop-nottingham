@@ -1,0 +1,79 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<MorpheusModel version="3">
+    <Description>
+        <Title>GSCN-Nanog-singlecell</Title>
+        <Details></Details>
+    </Description>
+    <Space>
+        <Lattice class="square">
+            <Size symbol="size" value="20, 20, 0"/>
+            <Neighborhood>
+                <Order>2</Order>
+            </Neighborhood>
+        </Lattice>
+        <SpaceSymbol symbol="space"/>
+    </Space>
+    <Time>
+        <StartTime value="0"/>
+        <StopTime value="100"/>
+        <TimeSymbol symbol="time"/>
+    </Time>
+    <CellTypes>
+        <CellType class="biological" name="mESC">
+            <Property symbol="N" value="0"/>
+            <System solver="heun" time-scaling="20" time-step="0.1">
+                <Constant symbol="b" value="0.08" name="basal transcription rate"/>
+                <Constant symbol="s" value="14" name="autoregulatory transcription rate"/>
+                <Constant symbol="d" value="1" name="degradation rate"/>
+                <Constant symbol="k" value="10" name="binding rate"/>
+                <Constant symbol="sig_N" value="0.70" name="noise_nanog"/>
+                <DiffEqn symbol-ref="N">
+                    <Expression>b + (s*N^2)/(k+N^2) - d*N + sig_N*rand_norm(0,1)*N</Expression>
+                </DiffEqn>
+            </System>
+            <Event>
+                <Condition>time > 24 and time &lt; 25 and N > 1</Condition>
+                <Rule symbol-ref="N">
+                    <Expression>0.1</Expression>
+                </Rule>
+            </Event>
+        </CellType>
+    </CellTypes>
+    <CellPopulations>
+        <Population size="1" type="mESC">
+            <InitCellLattice/>
+            <InitProperty symbol-ref="N">
+                <Expression>if(rand_uni(0,1)&lt;=0.75,14,0.1)</Expression>
+            </InitProperty>
+        </Population>
+    </CellPopulations>
+    <Analysis>
+        <Logger time-step="0.1">
+            <Input>
+                <Symbol symbol-ref="N"/>
+            </Input>
+            <Output>
+                <TextOutput/>
+            </Output>
+            <Plots>
+                <Plot time-step="-1">
+                    <Style grid="true" style="lines" line-width="2.0"/>
+                    <Terminal terminal="png"/>
+                    <X-axis>
+                        <Symbol symbol-ref="time"/>
+                    </X-axis>
+                    <Y-axis logarithmic="true">
+                        <Symbol symbol-ref="N"/>
+                    </Y-axis>
+                </Plot>
+            </Plots>
+        </Logger>
+        <HistogramLogger normalized="false" logarithmic-bins="true" time-step="5.0" number-of-bins="20">
+            <Plot minimum="0.0" terminal="png"/>
+            <Column symbol-ref="N" celltype="mESC"/>
+        </HistogramLogger>
+    </Analysis>
+    <Global>
+        <Constant symbol="N" value="0.0"/>
+    </Global>
+</MorpheusModel>

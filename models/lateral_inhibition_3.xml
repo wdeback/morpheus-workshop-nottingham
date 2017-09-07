@@ -1,0 +1,81 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<MorpheusModel version="3">
+    <Description>
+        <Title>GSCN-LateralInhibition-1</Title>
+        <Details></Details>
+    </Description>
+    <Space>
+        <Lattice class="hexagonal">
+            <Size symbol="size" value="20, 20, 0"/>
+            <Neighborhood>
+                <Order>1</Order>
+            </Neighborhood>
+        </Lattice>
+        <SpaceSymbol symbol="space"/>
+    </Space>
+    <Time>
+        <StartTime value="0"/>
+        <StopTime value="25"/>
+        <TimeSymbol symbol="time"/>
+    </Time>
+    <CellTypes>
+        <CellType class="medium" name="medium"/>
+        <CellType class="biological" name="cell">
+            <Property symbol="x" value="0" name="x"/>
+            <Property symbol="xn" value="0" name="x of neighbor"/>
+            <System solver="heun" time-step="0.1">
+                <Constant symbol="a" value="2"/>
+                <Constant symbol="beta" value="4"/>
+                <Constant symbol="eta" value="0.001" name="noise amplitude"/>
+                <DiffEqn symbol-ref="x">
+                    <Expression>a/(1+(xn^beta))-x + rand_norm(0,eta)</Expression>
+                </DiffEqn>
+            </System>
+            <NeighborhoodReporter>
+                <Input scaling="cell" value="x"/>
+                <Output symbol-ref="xn" mapping="sum"/>
+            </NeighborhoodReporter>
+        </CellType>
+    </CellTypes>
+    <CellPopulations>
+        <Population size="0" type="cell">
+            <InitCellLattice/>
+        </Population>
+    </CellPopulations>
+    <Analysis>
+        <Logger time-step="0.1">
+            <Input>
+                <Symbol symbol-ref="x"/>
+            </Input>
+            <Output>
+                <TextOutput file-separation="cell"/>
+            </Output>
+            <Plots>
+                <Plot time-step="-1">
+                    <Style grid="true" style="lines" line-width="4.0"/>
+                    <Terminal terminal="png"/>
+                    <X-axis>
+                        <Symbol symbol-ref="time"/>
+                    </X-axis>
+                    <Y-axis>
+                        <Symbol symbol-ref="x"/>
+                    </Y-axis>
+                </Plot>
+            </Plots>
+        </Logger>
+        <Gnuplotter time-step="5">
+            <Terminal name="png"/>
+            <Plot>
+                <Cells value="x" min="0" max="3">
+                    <ColorMap>
+                        <Color value="1" color="red"/>
+                        <Color value="0.0" color="white"/>
+                    </ColorMap>
+                </Cells>
+            </Plot>
+        </Gnuplotter>
+    </Analysis>
+    <Global>
+        <Constant symbol="x" value="0.0"/>
+    </Global>
+</MorpheusModel>

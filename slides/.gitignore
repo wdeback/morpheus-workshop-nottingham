@@ -1,0 +1,3 @@
+# ignore the (huge) Keynote files
+*.key
+

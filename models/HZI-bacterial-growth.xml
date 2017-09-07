@@ -1,0 +1,138 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<MorpheusModel version="3">
+    <Description>
+        <Details></Details>
+        <Title>HZI-Bacterial-Growth</Title>
+    </Description>
+    <Space>
+        <Lattice class="hexagonal">
+            <Neighborhood>
+                <Order>2</Order>
+            </Neighborhood>
+            <Size symbol="size" value="200, 200, 0"/>
+        </Lattice>
+        <SpaceSymbol symbol="space"/>
+    </Space>
+    <Time>
+        <StartTime value="0"/>
+        <StopTime value="1000"/>
+        <TimeSymbol symbol="time"/>
+    </Time>
+    <CellTypes>
+        <CellType class="medium" name="agar"/>
+        <CellType class="biological" name="bacteria">
+            <Constant symbol="cell" value="1.0"/>
+            <Constant symbol="Vt_init" value="50"/>
+            <Property symbol="Vt" value="Vt_init"/>
+            <VolumeConstraint target="Vt" strength="1"/>
+            <SurfaceConstraint target="0.8" mode="aspherity" strength="1"/>
+            <LengthConstraint target="1000" mode="eccentricity" strength="10"/>
+            <Property symbol="n_local" value="0" name="Local nutrients"/>
+            <CellReporter name="Report local nutrient concentration">
+                <Input value="nutrients"/>
+                <Output symbol-ref="n_local" mapping="average"/>
+            </CellReporter>
+            <Property symbol="tob" value="0" name="Time of birth"/>
+            <Function symbol="age" name="Age of cell">
+                <Expression>time - tob</Expression>
+            </Function>
+            <Function symbol="growth">
+                <Expression>0.01 * n_local</Expression>
+            </Function>
+            <System solver="runge-kutta" time-step="1.0" name="Growth of target volume">
+                <DiffEqn symbol-ref="Vt">
+                    <Expression>growth * age</Expression>
+                </DiffEqn>
+            </System>
+            <CellDivision name="Cell division" division-plane="minor">
+                <Condition>cell.volume > 2*Vt_init</Condition>
+                <Triggers>
+                    <Rule symbol-ref="tob">
+                        <Expression>time</Expression>
+                    </Rule>
+                    <Rule symbol-ref="Vt">
+                        <Expression>Vt_init</Expression>
+                    </Rule>
+                </Triggers>
+            </CellDivision>
+            <PersistentMotion decay-time="30" strength="5"/>
+            <ConnectivityConstraint/>
+        </CellType>
+    </CellTypes>
+    <CPM>
+        <Interaction>
+            <Contact type1="bacteria" type2="bacteria" value="0"/>
+            <Contact type1="agar" type2="bacteria" value="0"/>
+        </Interaction>
+        <ShapeSurface scaling="norm">
+            <Neighborhood>
+                <Order>2</Order>
+            </Neighborhood>
+        </ShapeSurface>
+        <MonteCarloSampler stepper="edgelist">
+            <MCSDuration value="1"/>
+            <MetropolisKinetics temperature="5"/>
+            <Neighborhood>
+                <Order>2</Order>
+            </Neighborhood>
+        </MonteCarloSampler>
+    </CPM>
+    <Analysis>
+        <Gnuplotter time-step="10" decorate="false">
+            <Terminal opacity="0.25" name="png"/>
+            <Plot>
+                <Cells per-frame-range="true" value="growth"/>
+                <Field resolution="10" data-cropping="true" symbol-ref="nutrients">
+                    <!--    <Disabled>
+        <ColorMap>
+            <Color value="1.0" color="white"/>
+            <Color value="0" color="white"/>
+        </ColorMap>
+    </Disabled>
+-->
+                </Field>
+            </Plot>
+            <!--    <Disabled>
+        <Plot>
+            <Field resolution="25" data-cropping="false" symbol-ref="nutrients" isolines="0"/>
+        </Plot>
+    </Disabled>
+-->
+        </Gnuplotter>
+        <TiffPlotter format="16bit" OME-header="true" compression="false" time-step="50">
+            <Channel symbol-ref="cell.id"/>
+        </TiffPlotter>
+        <Logger time-step="10.0">
+            <Input>
+                <Symbol symbol-ref="Vt"/>
+                <Symbol symbol-ref="cell.volume"/>
+                <Symbol symbol-ref="growth"/>
+            </Input>
+            <Output>
+                <TextOutput/>
+            </Output>
+        </Logger>
+    </Analysis>
+    <CellPopulations>
+        <Population size="0" type="bacteria">
+            <InitRectangle mode="regular" number-of-cells="1">
+                <Dimensions size="1.0, 1.0, 1.0" origin="size/2"/>
+            </InitRectangle>
+        </Population>
+    </CellPopulations>
+    <Global>
+        <Field symbol="nutrients" value="1.0">
+            <Diffusion rate="1.0"/>
+        </Field>
+        <System solver="runge-kutta" time-step="10.0">
+            <DiffEqn symbol-ref="nutrients">
+                <Expression> - d_rate * cell * nutrients</Expression>
+            </DiffEqn>
+            <Constant symbol="d_rate" value="0.01"/>
+        </System>
+        <Constant symbol="cell" value="0.0"/>
+        <Constant symbol="n_local" value="0.0"/>
+        <Constant symbol="Vt" value="0.0"/>
+        <Constant symbol="growth" value="0.0"/>
+    </Global>
+</MorpheusModel>
